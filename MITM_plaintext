@@ -1,0 +1,11 @@
+from scapy.all import sniff, Raw, send
+
+INTERFACE = "\\Device\\NPF_Loopback"
+
+def packet_callback(packet):
+    if packet.haslayer(Raw):
+        raw_data = packet[Raw].load.decode('utf-8', errors="ignore")
+        print(f"\n[MITM] Intercepted Plaintext Data: {raw_data}")
+
+print(f"[MITM] Listening on {INTERFACE}...")
+sniff(iface=INTERFACE, filter="tcp port 5000", prn=packet_callback, store=False)

@@ -1,0 +1,38 @@
+# from flask import Flask, request, jsonify
+
+# app = Flask(__name__)
+# @app.route("/", methods=["GET"])
+# def home():
+#     return "Flask server is running!"
+# @app.route('/data', methods=['POST'])
+# def receive_data():
+#     if request.is_json:
+#         data = request.get_json()
+#         print(f"Received Data: {data}")  # Print received data to console
+#         return jsonify({"status": "success", "received": data}), 200
+#     else:
+#         return jsonify({"error": "Invalid data format"}), 400
+
+# if __name__ == '__main__':
+#     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Flask server is running!"
+
+@app.route('/data', methods=['POST'])
+def receive_data():
+    if request.is_json:
+        data = request.get_json()
+        print(f"Received Data: {data}")  # Log the received data
+        return jsonify({"status": "success", "received": data}), 200
+    else:
+        return jsonify({"error": "Invalid data format"}), 400
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000, debug=True)

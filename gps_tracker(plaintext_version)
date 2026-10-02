@@ -1,0 +1,38 @@
+# import requests
+# import random
+# from time import sleep
+
+# while True:
+#     latitude = random.uniform(-90, 90)
+#     longitude = random.uniform(-180, 180)
+#     data_json = {"latitude": latitude, "longitude": longitude}  # Send as JSON
+
+#     print(f"[GPS] Sending JSON: {data_json}")
+#     try:
+#         response = requests.post("http://10.0.0.212:5000/data", json=data_json)  # Use json= instead of data=
+#         print(f"[GPS] Status Code: {response.status_code}")
+#     except Exception as e:
+#         print(f"[GPS] Error: {e}")
+    
+#     sleep(3)
+
+import requests
+import random
+from time import sleep
+
+# Adjust the server URL as needed
+FLASK_SERVER_URL = "http://10.0.0.212:5000/data"
+
+while True:
+    data_json = {
+        "latitude": random.uniform(-90, 90),
+        "longitude": random.uniform(-180, 180)
+    }
+    print(f"[GPS] Sending JSON: {data_json}")
+    try:
+        response = requests.post(FLASK_SERVER_URL, json=data_json)
+        print(f"[GPS] Status Code: {response.status_code}")
+    except Exception as e:
+        print(f"[GPS] Error: {e}")
+    
+    sleep(3)
